@@ -1,0 +1,105 @@
+function completed = RL_power_system()
+% RL_power_system - example of 
+%    nonlinear-differential-algebraic reachability analysis, 2-RL power
+%    system.
+%
+% Syntax:  
+%    RL_power_system()
+%
+% Inputs:
+%    no
+%
+% Outputs:
+%    res - boolean 
+%
+% Example: 
+%
+% References:
+%    -
+
+% Author:       Ivan Fedotov
+% Written:      13-Sep-2020
+% Last update:  ---
+% Last revision:---
+
+
+%------------- BEGIN CODE --------------
+
+% Parameter ---------------------------------------------------------------
+
+params.tFinal = 2; % just for one iteration.
+
+% Initial states
+params.y0guess = 33;
+params.R0 = zonotope([16 5 0; 16 0 5]); % zonotope for initial dif and alg vars
+
+params.U = zonotope([1.5 5 0; 5 0 5]); %zonotope for the initial input
+
+% Zonotopes illustration
+% figure; hold on
+% plot(params.R0,[1 2],'b'); % plot Z1 in blue
+% plot(params.U,[1 2],'g'); % plot Z2 in green
+
+% Reachability Settings ---------------------------------------------------
+
+disp('predefine settings');
+options.timeStep = 0.25;
+options.taylorTerms = 20; % order of Taylor series expansion for the exp(A\delta t)
+options.zonotopeOrder = 20; %upper bound = p/n, p - sum members, n - dimension.
+options.errorOrder = 10; % zonotope order is reduced to error order (how?) 
+options.tensorOrder = 2; % order of the Taylor series expansion. Default is 2
+
+options.maxError = [1000; 1000]; % max overall error. default - infinity
+options.maxError_x = options.maxError; % max dif. error. default - infinity
+options.maxError_y = 1000; % max alg. error. default - infinity
+
+
+% System Dynamics ---------------------------------------------------------
+
+disp('predefine dynamics');
+powerDyn = nonlinDASys(@RL_Dyn,@RL_Con, 2, 2, 1);
+
+
+% Reachability Analysis ---------------------------------------------------
+
+disp('start computations');
+tic
+R = reach(powerDyn, params, options);
+tComp = toc;
+disp(['computation time of reachable set: ',num2str(tComp)]);
+
+
+% Simulation --------------------------------------------------------------
+
+simOpt.points = 60;
+simOpt.fracVert = 0.5;
+simOpt.fracInpVert = 0.5;
+simOpt.inpChanges = 6;
+
+simRes = simulateRandom(powerDyn, params, simOpt);
+
+
+% Visualization -----------------------------------------------------------
+
+dim = [1 2];
+    
+figure; hold on; box on;
+
+% plot reachable sets
+plot(R,dim,'FaceColor',[.7 .7 .7],'EdgeColor','none');
+
+% plot initial set
+plot(params.R0,dim,'w','Filled',true,'EdgeColor','k');
+
+% plot simulation results      
+plot(simRes,dim);
+
+% label plot
+xlabel(['x_{',num2str(dim(1)),'}']);
+ylabel(['x_{',num2str(dim(2)),'}']);
+
+% example completed
+completed = 1;
+
+%------------- END OF CODE --------------
+        
