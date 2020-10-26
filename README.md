@@ -6,5 +6,5 @@ How to use it:
 3. On mac: make sure that XCode is installed
 4. Install MPT, Symbolic math toolbox, Optimization toolbox and YALMIP libs (possible from matlab command window)- https://www.mpt3.org/Main/Installation
 5. Set path to the CORA in Matlab
-6. Add files to the CORA/TUM/models/Cora and CORA/TUM/examples/ContDynamics/nonlinDASys directories
-7. Run file from nonlinDASys
+6. Write examples and add .m file either to CORA/TUM/models/Cora and CORA/TUM/examples or to abstraction/examples directories
+7. Run file from Matlab IDE
