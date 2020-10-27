@@ -55,7 +55,7 @@ r_options.maxError_y = 10;
 
 % Reachability Analysis ---------------------------------------------------
 % path for saving result.
-path = "./reachability_res.json";
+path = "./resources/reachability_res.json";
 solver = reach_solver(state_gr_opt, input_gr_opt, ...
     r_params, r_options);
 solver.compute(path, alg, dif);

@@ -28,7 +28,7 @@ classdef reach_solver
 
 % Author:       Ivan Fedotov
 % Written:      21-October-2020
-% Last update:  TODO: guess y0 and get rid of zero generators (!!!),
+% Last update:  TODO: guess y0 and parallelalize reach loops with "parfor"
 % improve printing progress
 % Last revision: ---
 
@@ -124,11 +124,14 @@ classdef reach_solver
                     gen_nums = temp_array(2); % TODO: avoid null gen-s
 
                     % generators for reachable set for current iteration
-                    generators = zeros(state_grid.dim, gen_nums);
-                    for g = 1 : gen_nums
+                    % generators = zeros(state_grid.dim, gen_nums);
+                    for g = 2 : gen_nums
                         gen = R.timePoint.set{1, 1}.Z(:,g);
-                        for d = 1 : state_grid.dim
-                            generators(g, d) = gen(d);
+                        % avoid empty generators
+                        if nnz(gen) ~= 0
+                            for d = 1 : state_grid.dim
+                                generators(g-1, d) = gen(d);
+                            end
                         end
                     end
 
@@ -140,17 +143,17 @@ classdef reach_solver
                     % { "center": [...], "generators": [...],...,[...] } },
                     %   {...}, ..., {...}]}
                     if (j == 0 && i == 0)
-                        S = struct ("zonotopes", struct("input", ...
+                        S = struct ("zonotope", struct("input", ...
                         inputs, "state", state, "value",struct("center",...
-                        R.timePoint.set{1, 1}.Z(:,1), "generators", generators)));
-                        % S.zonotopes = {S.zonotopes};
+                        R.timePoint.set{1, 1}.Z(:,1), ...
+                        "generators", generators)));
                     else
                         % add to structure the current reachable zonotope
                         % and meta info:
-                        S(end+1) = struct ("zonotopes", struct("input",...
+                        S(end+1) = struct ("zonotope", struct("input",...
                         inputs, "state", state, "value",struct("center",...
-                        R.timePoint.set{1, 1}.Z(:,1), "generatots", generators)));
-                        % S.zonotopes = {S.zonotopes};
+                        R.timePoint.set{1, 1}.Z(:,1), ...
+                        "generatots", generators)));
                     end
                 end
                 % create json and write it to the file
