@@ -8,3 +8,6 @@ How to use it:
 5. Set path to the CORA in Matlab
 6. Write examples and add .m file either to CORA/TUM/models/Cora and CORA/TUM/examples or to abstraction/examples directories
 7. Run file from Matlab IDE
+
+NB. Before using abstraction's module it's better to get rid of logging in CORA in createHessianTensorFile.m, taylor.m and
+derivatives.m files to speed up computations.

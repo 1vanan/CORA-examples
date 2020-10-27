@@ -1,8 +1,8 @@
 classdef uniformGrid
-    
+
 % uniformGrid - information about uniform grid in dim-dimensional space.
 %
-% Syntax:  
+% Syntax:
 %    obj = uniformGrid(dim, err, first, num_points, nn)
 %
 % Inputs:
@@ -19,12 +19,12 @@ classdef uniformGrid
 % Subfunctions: none
 % MAT-files required: none
 %
-% See also: 
+% See also:
 % https://gitlab.lrz.de/matthias/SCOTSv0.2/-/blob/master/src/UniformGrid.hh
 
 % Author:       Ivan Fedotov
-% Written:      20-October-2020 
-% Last update:  TODO: re-check and optimize itox function
+% Written:      20-October-2020
+% Last update:  20-October-2020 fix itox function
 % Last revision: ---
 
 %------------- BEGIN CODE --------------
@@ -33,29 +33,29 @@ classdef uniformGrid
     properties (GetAccess = public, SetAccess = private)
         % dimension of the Eucleadian space.
         dim {mustBeNumeric};
-        
+
         % array containing the cell size
         err = [];
-        
+
         % array containing the real values of the first grid point
         first = [];
-        
+
         % array containing the number of grid points in each dimension
         num_points = [];
-        
+
         % array recursively defined by:
         % m_NN[1]=1; m_NN[i]=m_NN[i-1}*no_grid_points[i-1]
         nn = [];
     end
-    
-    
+
+
  methods
 
      function obj = uniformGrid(grid_options)
          obj.dim = length(grid_options.lower_bound);
          obj.err = grid_options.err;
          obj.first = grid_options.lower_bound;
-         
+
          total = 1;
          for d = 1 : obj.dim
              cell_size = grid_options.err(d);
@@ -68,12 +68,12 @@ classdef uniformGrid
              % number of cells from zero to right bound
              no_u = round(abs(ub)/cell_size + 0.5 - round_h);
              obj.num_points(d) = sign(ub)*no_u - sign(lb)*no_l + 1;
-             
+
              % compute dimensional multiplicator
              obj.nn(d) = total;
              total = total * obj.num_points(d);
          end
-     end 
+     end
 
      % Each cell in n-dim hypercube is assigned to index. Access to the
      % vector state representation can be done by this enumeration.
@@ -84,40 +84,38 @@ classdef uniformGrid
         for d = 1 : obj.dim
             err_d = obj.err(d)/2;
             id_d = x_dot(d) - obj.first(d);
-           
+
             if id_d<err_d || id_d > obj.num_points(d)*obj.err(d) + err_d
                 throw(MException('Outside of uniform grid'));
             end
             id = id + ((id_d + err_d)/obj.err(d))*obj.nn(d);
         end
-        
+
     end
-    
+
     % Converting from index to vector. Start from the highest dimension and
     % "unwrap" length from zero to the cell with index id in each
     % dimension.
-    function x_dot = itox (obj, id) % TODO: check that it works correct
+    function x_dot = itox (obj, id)
         x_dot = zeros(obj.dim, 1);
-        d = obj.dim; % TODO: re-write backward search
-        for i = 2 : obj.dim
-            num = id/obj.nn(d);
-            id = mod (id, obj.nn(d));
-            x_dot(d) = obj.first(d) + num * obj.err(d);
-            d = d-1;
+        for i=obj.dim:-1:2
+            num = floor(id/obj.nn(i));
+            id = mod (id, obj.nn(i));
+            x_dot(i) = obj.first(i) + num * obj.err(i);
         end
         num = id;
         x_dot(1) = obj.first(1) + num * obj.err(1);
     end
-    
+
     function total = total_cells(obj)
         total = 1;
         for d = 1 : obj.dim
             total = total * obj.num_points(d);
         end
     end
-    
+
  end
- 
+
 end
-    
+
 %------------- END OF CODE --------------
