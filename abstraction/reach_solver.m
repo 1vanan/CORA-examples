@@ -113,13 +113,13 @@ classdef reach_solver
                     algebraic_s.inputs = inputs;
                     
                     % Guess for algebraic part TODO: how to guess it?
-                    obj.r_params.y0guess = 33;
+                    obj.r_params.y0guess = 0;
                     % zonotope for initial dif vars
                     obj.r_params.R0 = zonotope(state_matrix);
                     
                     powerDyn = nonlinDASys(@differential_s.dyn_eq, ...
                         @algebraic_s.con_eq, ...
-                        state_grid.dim, input_grid.dim, ...
+                        state_grid.dim, state_grid.dim, ...
                         algebraic_s.constraints);
                     
 % Reachability Analysis  for one cell--------------------------------------
@@ -127,9 +127,10 @@ classdef reach_solver
                     
 % Add Result To JSON ------------------------------------------------------
                     if obj.using_intervals
-                        Z = box(R.timePoint.set{fin_step, 1});
+                        Z = box(R.timePoint.set{int8(fin_step), 1});
+                        disp("write single zonotope");
                     else
-                        Z = R.timePoint.set{fin_step, 1};
+                        Z = R.timePoint.set{int8(fin_step), 1};
                     end
                     
                     % amount of generators for the current iteration
@@ -164,7 +165,7 @@ classdef reach_solver
                         S(end+1) = struct ("zonotope", struct("input",...
                         inputs, "state", state, "value",struct("center",...
                         Z.Z(:,1), ...
-                        "generatots", generators)));
+                        "generators", generators)));
                     end
                 end
                 % create json and write it to the file    
