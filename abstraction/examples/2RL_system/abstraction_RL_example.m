@@ -55,7 +55,7 @@ r_options.maxError_y = 10;
 
 % Reachability Analysis ---------------------------------------------------
 % path to save result.
-path = "./resources/reachability_res.json";
+path = "./reachability_RL.json";
 % provide one more argument, "false", if disable of enclosing box is needed
 solver = reach_solver(state_gr_opt, input_gr_opt, ...
     r_params, r_options);

@@ -128,7 +128,7 @@ classdef reach_solver
 % Add Result To JSON ------------------------------------------------------
                     if obj.using_intervals
                         Z = box(R.timePoint.set{int8(fin_step), 1});
-                        disp("write single zonotope");
+                        % disp("write a single zonotope");
                     else
                         Z = R.timePoint.set{int8(fin_step), 1};
                     end
@@ -171,6 +171,9 @@ classdef reach_solver
                 % create json and write it to the file    
                 s = jsonencode(S);
                 fileID = fopen(path, 'w');
+                if fileID==-1
+                    error('Cannot open file for writing: %s', file);
+                end
                 fprintf(fileID, s);
                 fclose(fileID);
             end 
