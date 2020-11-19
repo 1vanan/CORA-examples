@@ -2,7 +2,7 @@ classdef Vehicle_Con
 % Vehicle_Dyn - class for algebraic function for vehicle examples from
 % scots. As there are no algebraic part, the function here is empty.
 %
-% Syntax:  
+% Syntax:
 %    f = Vehicle_Con(inputs)
 %
 % Inputs:
@@ -22,13 +22,12 @@ classdef Vehicle_Con
         % number of algebraic constraints
         constraints = 1;
     end
-    
+
     methods
         function f = con_eq(obj,x,y,~)
-            f(1,1) = atan(tan(obj.inputs(2))/2) + x(3) - y(1);
+            f(1,1) = y(1);
         end
     end
 end
 
 %------------- END OF CODE --------------
-
