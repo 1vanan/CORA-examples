@@ -16,8 +16,8 @@ function abstraction_vehicle()
 %    -
 
 % Author:       Ivan Fedotov
-% Written:      10-Nov-2020
-% Last update:  ---
+% Written:      10-November-2020
+% Last update:  25-November-2020
 % Last revision:---
 
 
@@ -25,7 +25,6 @@ function abstraction_vehicle()
 
 % System Dynamics ---------------------------------------------------------
 dif = Vehicle_Dyn;
-alg = Vehicle_Con;
 
 % Parameters and options for grid and algorythm ---------------------------
 % lower and upper bounds and error for 3-dim state space.
@@ -46,10 +45,6 @@ r_options.errorOrder = 3;
 r_options.tensorOrder = 2;
 % max overall error. default - infinity
 r_options.maxError = [0.2; 0.2; 0.2];
-% max dif. error. default - infinity
-r_options.maxError_x = r_options.maxError;
-% max alg. error. default - infinity
-r_options.maxError_y = 0.2;
 
 % Reachability Analysis ---------------------------------------------------
 % path to save result.
@@ -58,7 +53,7 @@ path = "./reachability_vehicle_dist.json";
 solver = reach_solver(state_gr_opt, input_gr_opt, ...
     r_params, r_options);
 tic
-solver.compute(path, alg, dif);
+solver.compute(path, dif);
 elapsed_time = toc;
 disp(elapsed_time);
 
