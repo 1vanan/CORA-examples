@@ -10,4 +10,4 @@ How to use it:
 7. Run file from Matlab IDE
 
 NB. Before using abstraction's module it's better to get rid of logging in CORA in createHessianTensorFile.m, taylor.m and
-derivatives.m files to speed up computations.
+derivatives.m files to speed up computations. For more information follow abstraction/examples.
