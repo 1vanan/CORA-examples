@@ -21,13 +21,13 @@ classdef Vehicle_Dyn
     properties
         inputs
     end
-
+    
     methods
         function obj = update_inputs (obj, inputs)
             obj.inputs = inputs;
         end
-
-        function f = dyn_eq(obj, x,y,u)
+        
+        function f = dyn_eq(obj, x, u)
             f(1,1) = obj.inputs(1) * cos(atan(tan(obj.inputs(2))/2) + x(3)) * cos(atan(tan(obj.inputs(2)))^(-1)) + u(1);
             f(2,1) =  obj.inputs(1) * sin(atan(tan(obj.inputs(2))/2) + x(3)) * cos(atan(tan(obj.inputs(2)))^(-1)) + u(2);
             f(3,1) =  obj.inputs(1) * tan(obj.inputs(2)) + u(3);

@@ -42,7 +42,6 @@ classdef absUtils
                 end
     
             cell = zonotope(center, generators);
-            try
                 if(isIntersecting(zonotopeCheck, cell))
                     if(init)
                         cells = [cell];
@@ -55,12 +54,6 @@ classdef absUtils
                     disp("generators: ");
                     disp(generators);
                 end
-            catch
-                disp("error! on: ");
-                disp(zonotopeCheck.Z);
-                disp("cell: ");
-                disp(cell.Z);
-            end
             end
             if(init)
                 disp("no intersection inside the provided grid");
@@ -127,17 +120,18 @@ classdef absUtils
             tic
             for i = 0 : intervalsAmount - 1
                 R_i = reach(sys, params, options);
-                params.R0 = R_i.timePoint.set{fin_step, 1};
-                allZonotopes(end+1) = params.R0;
+                nextZonotope = R_i.timePoint.set{fin_step, 1};
+                params.R0 = nextZonotope;
+                newSet =  R_i.timePoint.set{1:fin_step-1, 1};
+                allZonotopes(end+1) = newSet;
             end
-            t1 = toc;
+            t1 = toc
             disp("computation time: " + t1);
             tic
-            for reachableSet = allZonotopes
-                cells(end+1) = getCells(obj,reachableSet, grid);
+            for z = allZonotopes
+                cells(end+1) = getCells(obj,z, grid);
             end
-            t2 = toc;
-            disp("projection time: " + t2);
+            t2 = toc
         end      
             
     end
