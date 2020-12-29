@@ -1,9 +1,9 @@
-function nonConvexShot()
-% nonConvexShot - example for reachability analysis to within defined time steps
-% and non-convex final reachable set.
+function  oneShot()
+% oneShot - example for one step reachability analysis to compare
+% precision with growth bound
 %
 % Syntax:  
-%    nonConvexShot
+%    oneShot
 %
 % Inputs:
 %    no
@@ -15,16 +15,16 @@ function nonConvexShot()
 %   -
 
 % Author:        Ivan Fedotov
-% Written:       24-December-2020
+% Written:       25-November-2020
 % Last update:   ---
 % Last revision: ---
 
 %------------- BEGIN CODE --------------
 
 % Parameters --------------------------------------------------------------
-params.tStart = 0;   % Start time
-params.tFinal = 3;   % Final time
-intervalAmount = 1; % thus, the overall time is intarvalAmount * tFinal
+options.tStart = 0;   % Start time
+options.tFinal = 3;   % Final time
+
 u = absUtils;
 
 c = [1;1;1];
@@ -40,37 +40,49 @@ grid = uniformGrid(state_gr_opt);
 % Describe initial set as a zonotope as a point (without generators) and
 % disturbance 
 % state zonotope
-params.R0 = zonotope(c, G);
+options.R0 = zonotope(c, G);
 
 % Disturbance zonotope
-params.U = zonotope(c_d, G_d); % no external inputs
+options.uTrans = 0;
+options.U = zonotope(c_d, G_d); % no external inputs
 
 % Reachability Settings ---------------------------------------------------
 
 options.timeStep = 0.005;        % Time step size
 options.taylorTerms = 50;        % Taylor terms
 options.zonotopeOrder = 30;     % Zonotope order
+ 
+fin_step = (options.tFinal - options.tStart) / options.timeStep;
 
+options.advancedLinErrorComp = 0;
 options.alg                  = 'lin';
 options.tensorOrder          = 3;
 options.errorOrder           = 5;
 options.intermediateOrder    = 20;
 options.maxError             = [1; 1; 1];
 options.reductionInterval    = Inf;
+options.reductionTechnique = 'girard';
 
 
 % System Dynamics ---------------------------------------------------------
-vehicle = Vehicle_Dyn;
-vehicle.inputs = [1, 1, 1];
-dynFun = @(x,u) vehicle.dyn_eq(x,u);
-sys = nonlinearSys('vehicle',dynFun,3,3);
+sys = nonlinearSys(3,3,@Vehicle_Dyn,options);
 
 
 % Reachability Analysis ---------------------------------------------------
+
+% Compute reachable set 
 tic
-cells = u.getAllCells(intervalAmount, sys, params, options, grid);
+R = reach(sys, options);
+t1 = toc;
+disp("reachability computation time: " + t1);
+%  Z = box(R(5,1).timePoint.set{1, 1});
+tic
+zonotopeCheck = R{fin_step, 1}{1,1};
+cells = u.getCells(zonotopeCheck, grid);
+t2 = toc; 
+disp("projection time: " + t2);
 disp("amount of cells: ");
-disp(size(cells));
+disp(cells);
 
 %------------- END OF CODE --------------
 

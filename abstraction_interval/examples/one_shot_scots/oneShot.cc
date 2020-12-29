@@ -51,7 +51,7 @@ auto vehicle_post = [](state_type &x, const input_type &u) {
 /* we integrate the growth bound by 0.3 sec (the result is stored in r)  */
 auto radius_post = [](state_type &r, const state_type &, const input_type &u) {
     double c = std::abs(u[0]) * std::sqrt(std::tan(u[1]) * std::tan(u[1]) / 4.0 + 1);
-    const state_type w = {{0.05, 0.05}};
+    const state_type w = {{0.005, 0.005}};
 
     r[0] = r[0] + c * r[2] * tau + w[0];
     r[1] = r[1] + c * r[2] * tau + w[1];
@@ -59,7 +59,6 @@ auto radius_post = [](state_type &r, const state_type &, const input_type &u) {
 
 int main() {
     int dim = 3;
-    int steps = 2;
     double rad = 0.005;
     /* to measure time */
     TicToc tt;
@@ -74,8 +73,12 @@ int main() {
     }
 
     int total = 1;
+    bool win = false;
+    double left_winning [3] = {0.13, 1.6, 15};
+    double right_winning [3] = {0.3, 1.85, 16};
 
-    for (int k = 0; k < steps; k++) {
+    while(!win){
+        win = true;
         // solution with disturbance
         radius_post(r, x, u);
         // solution without disturbance
@@ -84,13 +87,15 @@ int main() {
         for (int i = 0; i < dim; i++) {
             double left = x[i] - r[i];
             double right = x[i] + r[i];
+            if(right < left_winning[i] || left > right_winning[i])
+                win = false;
+            std::cout << "dimension: " << i << "  left: " << left << "  right: " << right << "\n";
             r[i] = (right - left) / 2;
             x[i] = left + r[i];
             totalLocal *= std::round((right - left) / (rad * 2));
         }
         total += totalLocal;
     }
-
     std::cout << "total: " << total << "\n";
 
     return 0;

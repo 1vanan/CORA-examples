@@ -9,55 +9,53 @@ classdef absUtils
 
 %------------- BEGIN CODE --------------
     methods
-        % For provided zonotope and grid get cells that intersect this
-        % zonotope
-        function cells = getCells(obj, zonotopeCheck, grid)
-            cells_amount = grid.total_cells;
+        % For provided zonotope and vector of cell size in eacg dimension
+        % compute amount of cells that intersect a zonotope.
+        function cells = getCells(obj, zonotopeCheck, steps)
+            cells = 0;
+            s = size(zonotopeCheck.Z(:,1));
+            dim = s(1);
+            encl = box(zonotopeCheck);
+            left_bound = zeros(dim, 1);
+            right_bound = zeros(dim, 1);
             
-            % function isIntersecting returns true even if one zonotope
-            % touches the border on another one, but don't invade inside.
-            % To avoid this, we decrement each non-zero coordinate of 
-            % generators on some amount which is smaller than grid cell.
-            % But in this case  we can lose intersections,
-            % if the vector gous out less than on precision value 
-            % compressedCheck = ...
-            %     obj.compress(zonotopeCheck, grid.err(1)*0.001);
-
-            %assume that the rror is the same for all dimensions
-            diagEls = zeros(grid.dim,1)+grid.err(1) / 2;
-            generators = diag(diagEls);
-            init = true;
-
+            % compute right and left bounds of enclosing box in each
+            % dimension according to radius size.
+            for d = 1 : dim
+                disp("dimension: " + d);
+                left_bound(d) = floor((encl.Z(d,1) - ...
+                    encl.Z(d,d+1))/steps(d))*steps(d);
+                right_bound(d) = ceil((encl.Z(d,1) + ...
+                    encl.Z(d,d+1))/steps(d))*steps(d);
+                disp("left: " + left_bound(d));
+                disp("right: " + right_bound(d));
+            end
+            
+            state_gr_opt = grid_options(left_bound, right_bound, steps);
+  
+            grid = uniformGrid(state_gr_opt);
+            cells_amount = grid.total_cells;
+            % compute the intersection with the grid cells only around
+            % enclosing box ares to reduce computation cost.
             for i = 1 : cells_amount
+                left = zeros(grid.dim, 1);
+                right = zeros(grid.dim, 1);
                 %vector to the start of the cell
                 state = grid.itox(i);
-                center = zeros(grid.dim, 1);
     
                 for j = 1 : grid.dim
                     if(j == 1)
-                        center(j) = state(j) - grid.err(1)/2;
+                        right(j) = state(j);
+                        left(j) = state(j) - grid.err(1);
                     else
-                        center(j) = state(j) + grid.err(1)/2;
+                        left(j) = state(j);
+                        right(j) = state(j) + grid.err(1);
                     end
                 end
-    
-            cell = zonotope(center, generators);
-                if(isIntersecting(zonotopeCheck, cell))
-                    if(init)
-                        cells = [cell];
-                        init = false;
-                    else
-                        cells(end+1) = cell;
-                    end
-                    disp("center: ");
-                    disp(center);
-                    disp("generators: ");
-                    disp(generators);
+            intv = interval(left, right);
+                if(isIntersecting(intv, zonotopeCheck))
+                    cells = cells + 1;
                 end
-            end
-            if(init)
-                disp("no intersection inside the provided grid");
-                cells = zonotope.empty;
             end
         end
         
@@ -92,8 +90,8 @@ classdef absUtils
         % that intersect with the last reachable zonotope according to the 
         % given grid.
         function cells = getLastCells(obj, steps, ... 
-                sys,params, options, grid)
-            fin_step = (params.tFinal - params.tStart) / options.timeStep;
+                sys, options, grid)
+            fin_step = (options.tFinal - options.tStart) / options.timeStep;
             tic
              for i = 0 : steps - 1
                 R_i = reach(sys, params, options);
@@ -112,28 +110,36 @@ classdef absUtils
         % that intersect with the whole non-convex path that connects the
         % initial zonotope, intermediate zonotopes and the last one.
         function cells = getAllCells(obj, intervalsAmount, ...
-                sys, params, options, grid)
-            fin_step = (params.tFinal - params.tStart) / options.timeStep;
-            allZonotopes = zonotope.empty;
+                sys, options, steps)
+            fin_step = (options.tFinal - options.tStart) / options.timeStep;
             %hyperinterval is represented as a zonotope
-            cells = zonotope.empty;
+            cells = 0;
             tic
             for i = 0 : intervalsAmount - 1
-                R_i = reach(sys, params, options);
-                nextZonotope = R_i.timePoint.set{fin_step, 1};
-                params.R0 = nextZonotope;
-                newSet =  R_i.timePoint.set{1:fin_step-1, 1};
-                allZonotopes(end+1) = newSet;
+                R_i = reach(sys, options);
+                options.R0 = R_i{fin_step, 1}{1,1};
+                cells = cells + getCells(obj,options.R0, steps);
             end
-            t1 = toc
+            t1 = toc;
             disp("computation time: " + t1);
-            tic
-            for z = allZonotopes
-                cells(end+1) = getCells(obj,z, grid);
-            end
-            t2 = toc
         end      
             
+        function cells = findWinningDomain(obj, sys, options, steps, win)
+            fin_step = (options.tFinal - options.tStart) / options.timeStep;
+            %hyperinterval is represented as a zonotope
+            cells = 0;
+            tic
+            while 1
+                R_i = reach(sys, options);
+                options.R0 = R_i{fin_step, 1}{1,1};
+                cells = cells + getCells(obj,options.R0, steps);
+                if isIntersecting(win, options.R0)
+                    break;
+                end
+            end
+            t1 = toc;
+            disp("computation time: " + t1);
+        end  
     end
     
 end
