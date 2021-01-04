@@ -18,7 +18,7 @@ TARGET = oneShot
 all: $(TARGET)
 
 oneShot:
-	$(CC) $(CXXFLAGS) $(SCOTSINC) oneShot.cc -o oneShot
+	$(CC) $(CXXFLAGS) $(SCOTSINC) oneShotVehicle.cc -o oneShotVehicle
 
 clean:
-	rm oneShot
+	rm oneShotVehicle

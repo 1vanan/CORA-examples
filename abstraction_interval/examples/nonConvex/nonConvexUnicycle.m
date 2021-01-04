@@ -1,7 +1,6 @@
-function nonConvexShot()
-% nonConvexShot - example for reachability analysis to within defined time steps
-% and non-convex final reachable set. Comparison result with scots: 16
-% cells versus 383.
+function nonConvexUnicycle()
+% nonConvexShot - example for reachability analysis with unicycle model
+% from scots
 %
 % Syntax:  
 %    nonConvexShot
@@ -55,21 +54,21 @@ options.errorOrder           = 5;
 options.intermediateOrder    = 20;
 options.maxError             = [1; 1; 1];
 options.reductionInterval    = Inf;
-options.reductionTechnique = 'girard'
+options.reductionTechnique = 'girard';
 % System Dynamics ---------------------------------------------------------
-sys = nonlinearSys(3,3,@Vehicle_Dyn,options);
-
+vehicle = nonlinearSys(3,3,@Vehicle_Dyn,options);
+vehicle_opts = grid_options([-10 -10 0], [10 10 20], [0.01 0.01 0.01]);
+vehicle_grid = uniformGrid(vehicle_opts);
 
 % Reachability Analysis ---------------------------------------------------
 tic
-% cells = u.getAllCells(itarations, sys, options, [0.01 0.01 0.01]);
-left = [0.6; 1.3; 14];
-right = [0.7; 1.4; 16];
-winning = interval(left, right);
-cells = u.findWinningDomain(sys, options, [0.01 0.01 0.01], winning);
+cells = u.findWinningDomain(vehicle, options, vehicle_grid);
+t = toc;
 disp("amount of cells: ");
 disp(cells);
 
+disp("computation time: ");
+disp(t);
 %------------- END OF CODE --------------
 
 end

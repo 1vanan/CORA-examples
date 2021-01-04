@@ -124,18 +124,22 @@ classdef absUtils
             disp("computation time: " + t1);
         end      
             
-        function cells = findWinningDomain(obj, sys, options, steps, win)
+        function cells = findWinningDomain(obj, sys, options, gird)
             fin_step = (options.tFinal - options.tStart) / options.timeStep;
             %hyperinterval is represented as a zonotope
+            iter = 0;
             cells = 0;
             tic
-            while 1
+            grid_bounds = interval(gird.first, gird.last);
+            while (iter < 7)
+                disp("iteration: " + iter);
+                iter = iter + 1;
                 R_i = reach(sys, options);
                 options.R0 = R_i{fin_step, 1}{1,1};
-                cells = cells + getCells(obj,options.R0, steps);
-                if isIntersecting(win, options.R0)
+                if ~ isIntersecting(grid_bounds, options.R0) % ?!? bug?
                     break;
                 end
+                cells = cells + getCells(obj,options.R0, gird.err);
             end
             t1 = toc;
             disp("computation time: " + t1);

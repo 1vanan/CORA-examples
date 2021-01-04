@@ -3,14 +3,13 @@
 //
 #include <iostream>
 #include <array>
+#include <time.h>
 
 /* SCOTS header */
 #include "scots.hh"
 /* ode solver */
 #include "RungeKutta4.hh"
 
-/* time profiling */
-#include "TicToc.hh"
 /* memory profiling */
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -31,6 +30,7 @@ const double tau = 3;
  */
 using state_type = std::array<double, state_dim>;
 using input_type = std::array<double, input_dim>;
+using namespace std;
 
 /* abbrev of the type for abstract states and inputs */
 using abs_type = scots::abs_type;
@@ -61,7 +61,7 @@ int main() {
     int dim = 3;
     double rad = 0.005;
     /* to measure time */
-    TicToc tt;
+    clock_t t;
     state_type x;
     state_type r;
     input_type u;
@@ -73,30 +73,38 @@ int main() {
     }
 
     int total = 1;
-    bool win = false;
-    double left_winning [3] = {0.13, 1.6, 15};
-    double right_winning [3] = {0.3, 1.85, 16};
+    bool inside = true;
+    double left_bound[3] = {-10, -10, 0};
+    double right_bound[3] = {10, 10, 20};
 
-    while(!win){
-        win = true;
+    t = clock();
+    for (int j = 0; j < 10; j++) {
         // solution with disturbance
         radius_post(r, x, u);
         // solution without disturbance
         vehicle_post(x, u);
         int totalLocal = 1;
-        for (int i = 0; i < dim; i++) {
+        for (int i = 0; i < state_dim; i++) {
             double left = x[i] - r[i];
             double right = x[i] + r[i];
-            if(right < left_winning[i] || left > right_winning[i])
-                win = false;
-            std::cout << "dimension: " << i << "  left: " << left << "  right: " << right << "\n";
-            r[i] = (right - left) / 2;
-            x[i] = left + r[i];
-            totalLocal *= std::round((right - left) / (rad * 2));
+            if (right < left_bound[i] || left > right_bound[i]) {
+                inside = false;
+                break;
+            }
+            std::cout << "iteration: " << j << "  dimension: " << i << "  left: " << left << "  right: " << right
+                      << "\n";
+
+            totalLocal *= ceil(right/(rad * 2)) - floor(left/(rad * 2));
+
+            cout << "num: " << totalLocal << "\n";
+        }
+        if (!inside) {
+            break;
         }
         total += totalLocal;
     }
+    t = clock() - t;
     std::cout << "total: " << total << "\n";
-
+    printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
     return 0;
 }

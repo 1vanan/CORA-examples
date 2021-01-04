@@ -40,6 +40,9 @@ classdef uniformGrid
         % array containing the real values of the first grid point
         first = [];
         
+        % array containing the real values of the last grid point
+        last = [];
+        
         % array containing the number of grid points in each dimension
         num_points = [];
         
@@ -55,6 +58,7 @@ classdef uniformGrid
          obj.dim = length(grid_options.lower_bound);
          obj.err = grid_options.err;
          obj.first = grid_options.lower_bound;
+         obj.last = grid_options.upper_bound;
          
          total = 1;
          for d = 1 : obj.dim
